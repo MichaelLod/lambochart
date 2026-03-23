@@ -2,10 +2,9 @@ interface LandingProps {
   onConnect: () => void;
   connecting: boolean;
   error: string | null;
-  pairingCode: string | null;
 }
 
-export function Landing({ onConnect, connecting, error, pairingCode }: LandingProps) {
+export function Landing({ onConnect, connecting, error }: LandingProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6">
       <div className="max-w-xl w-full text-center">
@@ -35,30 +34,12 @@ export function Landing({ onConnect, connecting, error, pairingCode }: LandingPr
           disabled={connecting}
           className="inline-flex items-center gap-3 px-8 py-4 bg-accent hover:bg-accent-2 disabled:opacity-50 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-accent/20 hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:cursor-wait"
         >
-          {connecting ? (
-            <>
-              <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
-              </svg>
-              Connecting...
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="3" />
-                <path d="M12 8v8M8 12h8" />
-              </svg>
-              Connect Wallet
-            </>
-          )}
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" />
+            <path d="M12 8v8M8 12h8" />
+          </svg>
+          Connect Wallet
         </button>
-
-        {pairingCode && (
-          <div className="mt-6 p-4 bg-surface rounded-xl border border-border">
-            <p className="text-text-2 text-sm mb-2">Scan with Byoky mobile app:</p>
-            <code className="text-accent-2 text-xs break-all">{pairingCode}</code>
-          </div>
-        )}
 
         {error && (
           <div className="mt-4 p-3 bg-rose/10 border border-rose/20 rounded-lg text-rose text-sm">

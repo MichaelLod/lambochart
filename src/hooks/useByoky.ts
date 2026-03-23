@@ -1,14 +1,28 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Byoky, type ByokySession, type ConnectResponse, isExtensionInstalled, getStoreUrl, ByokyError } from '@byoky/sdk';
+import { Byoky, type ByokySession, type ConnectResponse } from '@byoky/sdk';
 
 const STORAGE_KEY = 'lambochart:session';
 const byoky = new Byoky({ timeout: 120_000 });
+
+function bindSession(
+  s: ByokySession,
+  setSession: React.Dispatch<React.SetStateAction<ByokySession | null>>,
+) {
+  s.onDisconnect(() => {
+    sessionStorage.removeItem(STORAGE_KEY);
+    setSession(null);
+  });
+  s.onProvidersUpdated((providers) => {
+    setSession((prev) => (prev ? { ...prev, providers } : null));
+  });
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  setSession(s);
+}
 
 export function useByoky() {
   const [session, setSession] = useState<ByokySession | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pairingCode, setPairingCode] = useState<string | null>(null);
   const tried = useRef(false);
 
   useEffect(() => {
@@ -20,11 +34,7 @@ export function useByoky() {
       const response: ConnectResponse = JSON.parse(saved);
       byoky.reconnect(response).then((s) => {
         if (s) {
-          s.onDisconnect(() => {
-            sessionStorage.removeItem(STORAGE_KEY);
-            setSession(null);
-          });
-          setSession(s);
+          bindSession(s, setSession);
         } else {
           sessionStorage.removeItem(STORAGE_KEY);
         }
@@ -37,7 +47,6 @@ export function useByoky() {
   const connect = useCallback(async () => {
     setConnecting(true);
     setError(null);
-    setPairingCode(null);
 
     try {
       const s = await byoky.connect({
@@ -45,40 +54,31 @@ export function useByoky() {
           { id: 'anthropic', required: false },
           { id: 'openai', required: false },
         ],
-        onPairingReady: (code) => setPairingCode(code),
+        modal: {
+          theme: {
+            accentColor: '#7c5cfc',
+            backgroundColor: '#12121a',
+            textColor: '#e8e8f0',
+            borderRadius: '16px',
+          },
+        },
       });
-      s.onDisconnect(() => {
-        sessionStorage.removeItem(STORAGE_KEY);
-        setSession(null);
-      });
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-      setSession(s);
+      bindSession(s, setSession);
     } catch (e) {
-      if (e instanceof ByokyError && e.code === 'WALLET_NOT_INSTALLED') {
-        const url = getStoreUrl();
-        if (url) window.open(url, '_blank');
-        setError('Byoky extension not installed. Opening store...');
-      } else {
-        setError((e as Error).message);
+      const msg = (e as Error).message;
+      if (msg !== 'User cancelled') {
+        setError(msg);
       }
     } finally {
       setConnecting(false);
-      setPairingCode(null);
     }
   }, []);
 
   const disconnect = useCallback(() => {
+    sessionStorage.removeItem(STORAGE_KEY);
     session?.disconnect();
     setSession(null);
   }, [session]);
 
-  return {
-    session,
-    connecting,
-    error,
-    pairingCode,
-    installed: isExtensionInstalled(),
-    connect,
-    disconnect,
-  };
+  return { session, connecting, error, connect, disconnect };
 }

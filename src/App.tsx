@@ -36,7 +36,6 @@ export default function App() {
         onConnect={handleConnect}
         connecting={byoky.connecting}
         error={byoky.error}
-        pairingCode={byoky.pairingCode}
       />
     );
   }
