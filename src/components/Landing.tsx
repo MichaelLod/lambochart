@@ -17,9 +17,28 @@ export function Landing({ onConnect, onCanvas, connecting, error }: LandingProps
             powered by <a href="https://byoky.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-accent transition-colors">byoky</a>
           </div>
 
-          <h1 className="font-display text-5xl font-bold tracking-tight text-text mb-4">
-            lambochart
-          </h1>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <svg className="w-14 h-14" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="logo-bg" x1="0" y1="1" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#5a3dd6"/>
+                  <stop offset="100%" stopColor="#9b7eff"/>
+                </linearGradient>
+              </defs>
+              <rect width="32" height="32" rx="7" fill="url(#logo-bg)"/>
+              <polyline points="6,25 14,17 22,10 27,5" stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+              <polyline points="14,17 22,21 27,18" stroke="white" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
+              <circle cx="6" cy="25" r="2" fill="white" opacity="0.45"/>
+              <circle cx="14" cy="17" r="2.8" fill="white"/>
+              <circle cx="22" cy="10" r="2.2" fill="white"/>
+              <circle cx="27" cy="5" r="2.2" fill="white"/>
+              <circle cx="22" cy="21" r="1.8" fill="white" opacity="0.55"/>
+              <circle cx="27" cy="18" r="1.8" fill="white" opacity="0.55"/>
+            </svg>
+            <h1 className="font-display text-5xl font-bold tracking-tight text-text">
+              lambochart
+            </h1>
+          </div>
 
           <p className="text-text-2 text-lg leading-relaxed mb-2">
             Brainstorm your idea. See the full picture.

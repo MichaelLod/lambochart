@@ -1,6 +1,10 @@
-# lambochart
+<p align="center">
+  <img src="public/favicon.svg" width="80" height="80" alt="lambochart logo" />
+</p>
 
-Brainstorm your product idea before you start vibe coding it.
+<h1 align="center">lambochart</h1>
+
+<p align="center">Brainstorm your product idea before you start vibe coding it.</p>
 
 lambochart is a tool that helps you think through your business idea, then visualizes the full product lifecycle as an interactive flowchart — from concept to strategy to what's actually achievable.
 
