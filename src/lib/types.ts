@@ -23,5 +23,3 @@ export interface FlowchartData {
   nodes: FlowchartNode[];
   edges: FlowchartEdge[];
 }
-
-export type AppView = 'landing' | 'brainstorm' | 'chart';
