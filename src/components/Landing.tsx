@@ -14,7 +14,7 @@ export function Landing({ onConnect, onCanvas, connecting, error }: LandingProps
             <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
               <path d="M8 1L10 6L15 7L11 11L12 16L8 13L4 16L5 11L1 7L6 6L8 1Z" fill="currentColor" />
             </svg>
-            powered by byoky
+            powered by <a href="https://byoky.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-accent transition-colors">byoky</a>
           </div>
 
           <h1 className="font-display text-5xl font-bold tracking-tight text-text mb-4">
