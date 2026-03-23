@@ -17,6 +17,14 @@ interface ApiConfig {
   extractContent: (data: Record<string, unknown>) => string;
 }
 
+function withSystemPrompt(system: string, messages: ChatMessage[]): ChatMessage[] {
+  return [
+    { role: 'user', content: system },
+    { role: 'assistant', content: 'Understood. I will follow these instructions.' },
+    ...messages,
+  ];
+}
+
 function getApiConfig(providerId: string): ApiConfig {
   if (providerId === 'anthropic') {
     return {
@@ -28,8 +36,10 @@ function getApiConfig(providerId: string): ApiConfig {
       buildBody: (system, messages) => ({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4096,
-        system,
-        messages: messages.map((m) => ({ role: m.role, content: m.content })),
+        messages: withSystemPrompt(system, messages).map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
       }),
       extractContent: (data) => {
         const content = data.content as Array<{ type: string; text: string }>;
