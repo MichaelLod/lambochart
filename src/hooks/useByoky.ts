@@ -44,7 +44,7 @@ export function useByoky() {
     }
   }, []);
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (): Promise<boolean> => {
     setConnecting(true);
     setError(null);
 
@@ -64,11 +64,13 @@ export function useByoky() {
         },
       });
       bindSession(s, setSession);
+      return true;
     } catch (e) {
       const msg = (e as Error).message;
       if (msg !== 'User cancelled') {
         setError(msg);
       }
+      return false;
     } finally {
       setConnecting(false);
     }

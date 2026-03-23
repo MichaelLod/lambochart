@@ -14,8 +14,8 @@ export default function App() {
   const chat = useChat(byoky.session);
 
   const handleConnect = useCallback(async () => {
-    await byoky.connect();
-    if (view === 'landing') {
+    const connected = await byoky.connect();
+    if (connected && view === 'landing') {
       setView('brainstorm');
     }
   }, [byoky, view]);
