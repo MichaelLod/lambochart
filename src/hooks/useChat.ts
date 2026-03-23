@@ -10,7 +10,14 @@ function getProviderId(session: ByokySession): string | null {
   return null;
 }
 
-function getApiConfig(providerId: string) {
+interface ApiConfig {
+  url: string;
+  headers: Record<string, string>;
+  buildBody: (system: string, messages: ChatMessage[]) => Record<string, unknown>;
+  extractContent: (data: Record<string, unknown>) => string;
+}
+
+function getApiConfig(providerId: string): ApiConfig {
   if (providerId === 'anthropic') {
     return {
       url: 'https://api.anthropic.com/v1/messages',
@@ -18,13 +25,13 @@ function getApiConfig(providerId: string) {
         'content-type': 'application/json',
         'anthropic-version': '2023-06-01',
       },
-      buildBody: (system: string, messages: ChatMessage[]) => ({
+      buildBody: (system, messages) => ({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4096,
         system,
         messages: messages.map((m) => ({ role: m.role, content: m.content })),
       }),
-      extractContent: (data: Record<string, unknown>) => {
+      extractContent: (data) => {
         const content = data.content as Array<{ type: string; text: string }>;
         return content?.[0]?.text ?? '';
       },
@@ -34,7 +41,7 @@ function getApiConfig(providerId: string) {
   return {
     url: 'https://api.openai.com/v1/chat/completions',
     headers: { 'content-type': 'application/json' },
-    buildBody: (system: string, messages: ChatMessage[]) => ({
+    buildBody: (system, messages) => ({
       model: 'gpt-4o',
       max_tokens: 4096,
       messages: [
@@ -42,7 +49,7 @@ function getApiConfig(providerId: string) {
         ...messages.map((m) => ({ role: m.role, content: m.content })),
       ],
     }),
-    extractContent: (data: Record<string, unknown>) => {
+    extractContent: (data) => {
       const choices = data.choices as Array<{ message: { content: string } }>;
       return choices?.[0]?.message?.content ?? '';
     },

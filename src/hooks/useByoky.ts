@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Byoky, type ByokySession, isExtensionInstalled, getStoreUrl, ByokyError } from '@byoky/sdk';
+import { Byoky, type ByokySession, type ConnectResponse, isExtensionInstalled, getStoreUrl, ByokyError } from '@byoky/sdk';
 
+const STORAGE_KEY = 'lambochart:session';
 const byoky = new Byoky({ timeout: 120_000 });
 
 export function useByoky() {
@@ -13,12 +14,24 @@ export function useByoky() {
   useEffect(() => {
     if (tried.current) return;
     tried.current = true;
-    byoky.tryReconnect().then((s) => {
-      if (s) {
-        s.onDisconnect(() => setSession(null));
-        setSession(s);
-      }
-    });
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    try {
+      const response: ConnectResponse = JSON.parse(saved);
+      byoky.reconnect(response).then((s) => {
+        if (s) {
+          s.onDisconnect(() => {
+            sessionStorage.removeItem(STORAGE_KEY);
+            setSession(null);
+          });
+          setSession(s);
+        } else {
+          sessionStorage.removeItem(STORAGE_KEY);
+        }
+      });
+    } catch {
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
   }, []);
 
   const connect = useCallback(async () => {
@@ -34,7 +47,11 @@ export function useByoky() {
         ],
         onPairingReady: (code) => setPairingCode(code),
       });
-      s.onDisconnect(() => setSession(null));
+      s.onDisconnect(() => {
+        sessionStorage.removeItem(STORAGE_KEY);
+        setSession(null);
+      });
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(s));
       setSession(s);
     } catch (e) {
       if (e instanceof ByokyError && e.code === 'WALLET_NOT_INSTALLED') {
