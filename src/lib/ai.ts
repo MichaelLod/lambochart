@@ -1,6 +1,6 @@
 import type { ByokySession } from '@byoky/sdk';
 import type { ChatMessage, FlowchartData } from './types';
-import { FLOWCHART_SYSTEM } from './prompts';
+import { FLOWCHART_SYSTEM, EXPLORE_SYSTEM } from './prompts';
 
 interface ApiConfig {
   url: string;
@@ -102,4 +102,29 @@ export async function generateFlowchartFromPrompt(
 
   const cleaned = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   return JSON.parse(cleaned) as FlowchartData;
+}
+
+export async function exploreNode(
+  session: ByokySession,
+  nodeLabel: string,
+  nodeType: string,
+  nodeDescription: string,
+  chartContext: string,
+  messages: ChatMessage[],
+): Promise<string> {
+  const providerId = getProviderId(session);
+  if (!providerId) throw new Error('No AI provider available. Connect a wallet with an API key.');
+
+  const contextMsg = `I'm looking at a "${nodeType}" block in my product chart called "${nodeLabel}".
+Description: ${nodeDescription}
+
+Chart context: ${chartContext}`;
+
+  const allMessages: ChatMessage[] = [
+    { role: 'user', content: contextMsg },
+    { role: 'assistant', content: `I'll help you explore "${nodeLabel}". What would you like to dive into?` },
+    ...messages,
+  ];
+
+  return callLLM(session, providerId, EXPLORE_SYSTEM, allMessages);
 }

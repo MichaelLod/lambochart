@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type DragEvent } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect, type DragEvent } from 'react';
 import type { ByokySession } from '@byoky/sdk';
 import {
   ReactFlow,
@@ -22,6 +22,7 @@ import { layoutFlowchart } from '../lib/layout';
 import { generateFlowchartFromPrompt } from '../lib/ai';
 import { ChartNode } from './ChartNode';
 import { VibeBlockPalette } from './VibeBlockPalette';
+import { NodeSidebar } from './NodeSidebar';
 
 const nodeTypes = { chartNode: ChartNode };
 
@@ -66,7 +67,43 @@ export function Flowchart({ data, session, onConnect, onBack }: FlowchartProps) 
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Undo history
+  const historyRef = useRef<Array<{ nodes: Node[]; edges: Edge[] }>>([]);
+  const isUndoing = useRef(false);
+
+  useEffect(() => {
+    if (isUndoing.current) {
+      isUndoing.current = false;
+      return;
+    }
+    const last = historyRef.current[historyRef.current.length - 1];
+    if (last && JSON.stringify(last.nodes) === JSON.stringify(nodes) && JSON.stringify(last.edges) === JSON.stringify(edges)) return;
+    historyRef.current.push({ nodes: structuredClone(nodes), edges: structuredClone(edges) });
+    if (historyRef.current.length > 50) historyRef.current.shift();
+  }, [nodes, edges]);
+
+  const handleUndo = useCallback(() => {
+    if (historyRef.current.length < 2) return;
+    historyRef.current.pop();
+    const prev = historyRef.current[historyRef.current.length - 1];
+    if (!prev) return;
+    isUndoing.current = true;
+    setNodes(structuredClone(prev.nodes));
+    setEdges(structuredClone(prev.edges));
+    setSelectedNode(null);
+  }, [setNodes, setEdges]);
+
+  const handleReset = useCallback(() => {
+    isUndoing.current = true;
+    setNodes([]);
+    setEdges([]);
+    setTitle('Untitled Chart');
+    setSelectedNode(null);
+    historyRef.current = [];
+  }, [setNodes, setEdges]);
 
   const onInit = useCallback((instance: ReactFlowInstance) => {
     rfInstance.current = instance;
@@ -119,12 +156,23 @@ export function Flowchart({ data, session, onConnect, onBack }: FlowchartProps) 
     [setNodes],
   );
 
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null);
+  }, []);
+
   const onNodesDelete = useCallback(
     (deleted: Node[]) => {
       const deletedIds = new Set(deleted.map((n) => n.id));
       setEdges((eds) => eds.filter((e) => !deletedIds.has(e.source) && !deletedIds.has(e.target)));
+      if (selectedNode && deletedIds.has(selectedNode.id)) {
+        setSelectedNode(null);
+      }
     },
-    [setEdges],
+    [setEdges, selectedNode],
   );
 
   const handleAiGenerate = useCallback(async () => {
@@ -212,6 +260,31 @@ export function Flowchart({ data, session, onConnect, onBack }: FlowchartProps) 
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleUndo}
+            disabled={historyRef.current.length < 2}
+            title="Undo"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-text-2 hover:text-text text-sm border border-border hover:border-border-2 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-default"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="1 4 1 10 7 10" />
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+            </svg>
+          </button>
+
+          <button
+            onClick={handleReset}
+            disabled={nodeCount === 0}
+            title="Reset canvas"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-text-2 hover:text-rose text-sm border border-border hover:border-rose/30 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-default"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+
+          <div className="w-px h-5 bg-border" />
+
           {!session && (
             <button
               onClick={onConnect}
@@ -273,6 +346,8 @@ export function Flowchart({ data, session, onConnect, onBack }: FlowchartProps) 
           onDrop={onDrop}
           onDragOver={onDragOver}
           onNodesDelete={onNodesDelete}
+          onNodeClick={onNodeClick}
+          onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
           fitView={!!data}
           minZoom={0.2}
@@ -294,6 +369,16 @@ export function Flowchart({ data, session, onConnect, onBack }: FlowchartProps) 
             className="!bg-surface !border-border !rounded-lg"
           />
         </ReactFlow>
+
+        {selectedNode && (
+          <NodeSidebar
+            node={nodes.find((n) => n.id === selectedNode.id) || selectedNode}
+            allNodes={nodes}
+            session={session}
+            onConnect={onConnect}
+            onClose={() => setSelectedNode(null)}
+          />
+        )}
 
         {nodeCount === 0 && !aiLoading && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
