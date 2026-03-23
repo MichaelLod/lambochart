@@ -3,9 +3,11 @@ export interface ChatMessage {
   content: string;
 }
 
+export type VibeBlockType = 'idea' | 'phase' | 'strategy' | 'milestone' | 'risk' | 'outcome';
+
 export interface FlowchartNode {
   id: string;
-  type: 'idea' | 'phase' | 'strategy' | 'milestone' | 'risk' | 'outcome';
+  type: VibeBlockType;
   label: string;
   description: string;
 }

@@ -1,10 +1,11 @@
 interface LandingProps {
   onConnect: () => void;
+  onCanvas: () => void;
   connecting: boolean;
   error: string | null;
 }
 
-export function Landing({ onConnect, connecting, error }: LandingProps) {
+export function Landing({ onConnect, onCanvas, connecting, error }: LandingProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6">
       <div className="max-w-xl w-full text-center">
@@ -29,17 +30,31 @@ export function Landing({ onConnect, connecting, error }: LandingProps) {
           </p>
         </div>
 
-        <button
-          onClick={onConnect}
-          disabled={connecting}
-          className="inline-flex items-center gap-3 px-8 py-4 bg-accent hover:bg-accent-2 disabled:opacity-50 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-accent/20 hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:cursor-wait"
-        >
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="3" />
-            <path d="M12 8v8M8 12h8" />
-          </svg>
-          Connect Wallet
-        </button>
+        <div className="flex items-center justify-center gap-4">
+          <button
+            onClick={onConnect}
+            disabled={connecting}
+            className="inline-flex items-center gap-3 px-8 py-4 bg-accent hover:bg-accent-2 disabled:opacity-50 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-accent/20 hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:cursor-wait"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Brainstorm with AI
+          </button>
+
+          <button
+            onClick={onCanvas}
+            className="inline-flex items-center gap-3 px-8 py-4 bg-surface-2 hover:bg-surface-3 text-text border border-border hover:border-border-2 font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            Open Canvas
+          </button>
+        </div>
 
         {error && (
           <div className="mt-4 p-3 bg-rose/10 border border-rose/20 rounded-lg text-rose text-sm">
@@ -50,7 +65,7 @@ export function Landing({ onConnect, connecting, error }: LandingProps) {
         <div className="mt-12 grid grid-cols-3 gap-4 text-left">
           {[
             { title: 'Brainstorm', desc: 'Chat with AI to refine your product idea' },
-            { title: 'Visualize', desc: 'See the full lifecycle as a flowchart' },
+            { title: 'Drag & Drop', desc: 'Build your flowchart with vibe blocks' },
             { title: 'Strategize', desc: 'Understand risks and paths before coding' },
           ].map((item) => (
             <div key={item.title} className="p-4 bg-surface rounded-xl border border-border">
