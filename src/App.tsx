@@ -15,8 +15,10 @@ export default function App() {
 
   const handleConnect = useCallback(async () => {
     await byoky.connect();
-    setView('brainstorm');
-  }, [byoky]);
+    if (view === 'landing') {
+      setView('brainstorm');
+    }
+  }, [byoky, view]);
 
   const handleOpenCanvas = useCallback(() => {
     setChartData(null);
@@ -32,12 +34,12 @@ export default function App() {
   }, [chat]);
 
   const handleBackFromChart = useCallback(() => {
-    if (byoky.session) {
+    if (byoky.session && chat.messages.length > 0) {
       setView('brainstorm');
     } else {
       setView('landing');
     }
-  }, [byoky.session]);
+  }, [byoky.session, chat.messages.length]);
 
   if (view === 'landing' && !byoky.session) {
     return (
@@ -51,7 +53,14 @@ export default function App() {
   }
 
   if (view === 'chart') {
-    return <Flowchart data={chartData} onBack={handleBackFromChart} />;
+    return (
+      <Flowchart
+        data={chartData}
+        session={byoky.session}
+        onConnect={handleConnect}
+        onBack={handleBackFromChart}
+      />
+    );
   }
 
   return (
